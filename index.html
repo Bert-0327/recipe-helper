@@ -37,6 +37,10 @@
     @media (max-width: 750px) { .layout, .row { grid-template-columns: 1fr; } header, main { padding: 16px; } .ingredient { grid-template-columns: 2fr 1fr; } }
 :root{font-family:'Segoe UI',sans-serif;color:#293f34;background:#faf8f1}html{scroll-behavior:smooth;scroll-padding-top:20px}a{color:inherit}a:focus-visible,summary:focus-visible{outline:3px solid #a44e32;outline-offset:5px}.guide{max-width:1100px;margin:auto;padding:0 24px}.nav{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:26px 0;border-bottom:1px solid #dddccf}.brand{font:bold 25px Georgia,serif;text-decoration:none}.nav-links{display:flex;gap:22px;font-size:14px}.nav-links a{text-decoration:none}.nav-links a:hover{text-decoration:underline}.hero{padding:70px 0 55px;display:grid;grid-template-columns:1.3fr 1fr;gap:50px;align-items:center}.eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:700;color:#9b4a30}.hero h1{font:400 clamp(44px,5vw,68px)/1.05 Georgia,serif;letter-spacing:-.04em;margin:22px 0}.hero em{color:#a34e32}.intro{max-width:440px;color:#627064;font-size:17px;line-height:1.8}.cta{display:inline-block;margin-top:16px;padding:14px 22px;background:#294f3b;color:white;border-radius:7px;text-decoration:none;font-weight:600;font-size:14px}.cta:hover{background:#193c29}.art{border-radius:48% 48% 12px 12px;background:#e8ecdf;padding:28px;text-align:center}.art svg{width:100%;max-height:290px}.art p{font:italic 17px Georgia,serif;color:#53694b}.guide-section{padding:40px 0;border-top:1px solid #dddccf}.guide h2{font:400 33px Georgia,serif;margin:10px 0 26px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{padding:25px;border:1px solid #dfded1;border-radius:10px;background:#fffefa}.num{font:italic 28px Georgia,serif;color:#a34e32}.card h3{font:400 23px Georgia,serif;margin:16px 0 10px}.card p{color:#5c6b60;font-size:14px;line-height:1.8;margin-bottom:0}.tip{padding:16px 22px;background:#ecf0e3;border-left:3px solid #74805b;font-size:14px}.guide details{border-bottom:1px solid #dddccf;padding:16px 0;font-size:14px}.guide summary{cursor:pointer;font-weight:600;font-size:16px}.guide details p{max-width:850px;color:#5c6b60}body>header{border-top:1px solid #dddccf;padding-top:40px}body>header h1{font:400 38px Georgia,serif}main section,main aside{border-radius:10px;background:#fffefa;border-color:#dfded1}main h2{font:400 25px Georgia,serif}button{background:#294f3b}.guide-footer{text-align:center;padding:28px;border-top:1px solid #dddccf;font-size:13px;color:#617167}.skip{position:absolute;top:-80px;left:20px;background:white;padding:12px}.skip:focus{top:12px}@media(max-width:750px){.hero{grid-template-columns:1fr;padding:40px 0;gap:28px}.cards{grid-template-columns:1fr}.nav{flex-wrap:wrap}.nav-links{flex-wrap:wrap;gap:16px}.guide{padding:0 20px}.art svg{max-height:230px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
   .preview-window{margin:28px 0 18px;background:#fffefa;border:1px solid #d9ddcf;border-radius:12px;overflow:hidden;box-shadow:0 15px 40px #253d320a}.preview-bar{display:flex;justify-content:space-between;gap:12px;padding:16px 24px;background:#edf0e6;border-bottom:1px solid #d9ddcf;font-size:11px;letter-spacing:.12em;font-weight:700}.preview-label{color:#66745e;letter-spacing:0;font-weight:400}.preview-body{display:grid;grid-template-columns:220px 1fr}.preview-sidebar{padding:26px 20px;border-right:1px solid #e2e5da;color:#65735f;font-size:14px}.preview-sidebar p:not(.eyebrow){padding:12px}.preview-selected{background:#e9eee2;color:#294f3b;border-radius:6px;font-weight:600}.preview-recipe{padding:28px}.preview-recipe h3{font:400 30px Georgia,serif;margin:10px 0 14px}.preview-recipe>p{font-size:14px}.preview-table{overflow-x:auto}.preview-table table{margin-top:20px;min-width:320px}.preview-table caption{text-align:left;font-size:13px;color:#617167;padding:8px}.preview-table tbody th{font-weight:500}.preview-table td:last-child{font-weight:700;color:#294f3b}.preview-note{font-size:13px!important;color:#617167;line-height:1.7}@media(max-width:750px){.preview-body{grid-template-columns:1fr}.preview-sidebar{display:none}.preview-recipe{padding:18px}.preview-bar{padding:14px 18px;letter-spacing:0}}
+
+/* Interactive family demo: keep recipe navigation visible on small screens. */
+.preview-sidebar .family-heading{padding:0;margin:22px 0 8px;font-size:12px;font-weight:700;color:#52654d}.family-heading span{font-weight:400;margin-left:6px}.demo-recipe{display:block;width:100%;text-align:left;background:transparent;color:#41573e;border:1px solid transparent;margin:6px 0;font-size:14px}.demo-recipe[aria-pressed="true"]{background:#e9eee2;border-color:#c4d0b8;color:#294f3b;font-weight:700}.demo-recipe:hover{background:#edf0e6;filter:none}.demo-recipe:focus-visible,#demo-yield:focus-visible{outline:3px solid #a44e32;outline-offset:3px}#demo-yield{max-width:220px}.family-comparison{margin-top:28px;padding-top:12px;border-top:1px solid #d9ddcf}.family-comparison h4{font:400 23px Georgia,serif;margin-bottom:10px}#demo-instructions{font-size:14px;color:#5c6b60;line-height:1.8}#preview.guide{background:transparent;border:0;border-radius:0}@media(max-width:750px){.preview-sidebar{display:block;border-right:0;border-bottom:1px solid #e2e5da;padding:16px}.demo-recipe{padding:12px}.preview-table table{min-width:400px}.preview-bar{flex-wrap:wrap}}
+
 </style>
 </head>
 <body>
@@ -57,17 +61,81 @@
 <details><summary>Does scaling change cooking time?</summary><p>Ingredient amounts scale proportionally; cooking time and oven temperature do not change automatically. Choose suitable cookware and check doneness. For a fraction of an egg, beat it first and weigh the needed portion. The helper does not convert between measurement units.</p></details></div></div>
 <section class="guide" id="preview" aria-labelledby="preview-title">
   <div class="guide-section">
-    <p class="eyebrow">A look inside</p><h2 id="preview-title">Your recipe, at just the right size.</h2>
-    <p class="intro">Recipe Helper brings your ingredients, quantities, and variations together. Here's an example of what scaling a recipe looks like.</p>
+    <p class="eyebrow">Try the preview</p><h2 id="preview-title">One family. More ways to cook.</h2>
+    <p class="intro">Choose Tomato Pasta or Garlic Cream Pasta in the Pasta family. Switch recipes, change the servings, and compare their ingredients side by side.</p>
     <div class="preview-window">
-      <div class="preview-bar"><span>RECIPE HELPER / PREVIEW</span><span class="preview-label">Illustration only</span></div>
-      <div class="preview-body"><div class="preview-sidebar"><p class="eyebrow">Recipe collection</p><p class="preview-selected">Simple pancakes</p><p>Tomato pasta</p><p>Classic cookies</p></div>
-      <div class="preview-recipe"><p class="eyebrow">Breakfast favorites</p><h3>Simple pancakes</h3><p>Original yield: <strong>4 servings</strong> &nbsp;&rarr;&nbsp; Desired yield: <strong>2 servings</strong></p>
-      <div class="preview-table"><table><caption>Example: halving a pancake recipe</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Original</th><th scope="col">You need</th></tr></thead><tbody><tr><th scope="row">Flour</th><td>200 g</td><td>100 g</td></tr><tr><th scope="row">Milk</th><td>300 ml</td><td>150 ml</td></tr><tr><th scope="row">Eggs</th><td>2</td><td>1</td></tr><tr><th scope="row">Baking powder</th><td>2 tsp</td><td>1 tsp</td></tr></tbody></table></div>
-      <p class="preview-note">Half the servings, half the ingredients. Cooking time and temperature still need your judgment.</p></div></div>
+      <div class="preview-bar"><span>RECIPE HELPER / INTERACTIVE PREVIEW</span><span class="preview-label">Sample recipes</span></div>
+      <div class="preview-body">
+        <div class="preview-sidebar"><p class="eyebrow">Recipe collection</p>
+          <p class="family-heading">Breakfast</p><button type="button" class="demo-recipe" data-recipe="pancakes" aria-pressed="false">Simple Pancakes</button>
+          <p class="family-heading">Pasta <span>2 recipes</span></p>
+          <button type="button" class="demo-recipe" data-recipe="tomato" aria-pressed="true">Tomato Pasta</button>
+          <button type="button" class="demo-recipe" data-recipe="garlic" aria-pressed="false">Garlic Cream Pasta</button>
+          <p class="family-heading">Cookies</p><button type="button" class="demo-recipe" data-recipe="cookies" aria-pressed="false">Classic Cookies</button>
+        </div>
+        <div class="preview-recipe">
+          <p class="eyebrow" id="demo-family">Recipe family: Pasta</p><h3 id="demo-title">Tomato Pasta</h3>
+          <p id="demo-original">Original yield: 4 servings</p>
+          <label for="demo-yield">Desired yield (servings)</label><select id="demo-yield"><option value="2" selected>2 servings</option><option value="4">4 servings</option><option value="6">6 servings</option><option value="8">8 servings</option></select>
+          <p id="demo-status" role="status" aria-live="polite" class="preview-note"></p>
+          <div class="preview-table"><table><caption>Ingredient quantities for the selected recipe</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Original</th><th scope="col">You need</th></tr></thead><tbody id="demo-ingredients"></tbody></table></div>
+          <h4>How this recipe comes together</h4><p id="demo-instructions"></p>
+          <div class="family-comparison"><h4 id="demo-compare-title">Compare the Pasta family</h4><p class="preview-note">A family groups related recipes. Both columns use your desired yield so you can see which ingredients stay, change, or are unique to each version. A dash means the ingredient is not used.</p>
+          <div class="preview-table" id="demo-comparison"></div></div>
+          <p class="preview-note">Amounts scale proportionally. Cooking time and temperature do not change automatically.</p>
+        </div>
+      </div>
     </div>
-    <p class="preview-note">This is a static preview of the separate Recipe Helper tool. Use the steps above when working in the tool; this introduction page does not store or edit recipes.</p>
+    <noscript><p>Please enable JavaScript to switch sample recipes and try the family comparison.</p></noscript>
+    <p class="preview-note">This is a guided demo with sample recipes. It does not save recipes or change your separate Recipe Helper recipe book.</p>
   </div>
 </section>
-<footer class="guide-footer">Recipe Helper &middot; A little more confidence in every meal. <a href="#home">Back to top &uarr;</a></footer></body>
+<footer class="guide-footer">Recipe Helper &middot; A little more confidence in every meal. <a href="#home">Back to top &uarr;</a></footer><script>
+(() => {
+  'use strict';
+  const recipes = {
+    pancakes: { title: 'Simple Pancakes', family: 'Breakfast', yield: 4, ingredients: [['Flour',200,'g'],['Milk',300,'ml'],['Eggs',2,''],['Baking powder',2,'tsp']], instructions: 'Mix the dry and wet ingredients separately, combine gently, and cook portions in a lightly greased pan until cooked through.' },
+    tomato: { title: 'Tomato Pasta', family: 'Pasta', yield: 4, ingredients: [['Pasta',400,'g'],['Olive oil',2,'tbsp'],['Garlic',2,'cloves'],['Crushed tomatoes',400,'g'],['Basil',10,'g']], instructions: 'Cook the pasta. Gently sauté garlic in olive oil, add the tomatoes, and simmer. Toss with the pasta and finish with basil.' },
+    garlic: { title: 'Garlic Cream Pasta', family: 'Pasta', yield: 4, ingredients: [['Pasta',400,'g'],['Olive oil',1,'tbsp'],['Garlic',4,'cloves'],['Heavy cream',200,'ml'],['Parmesan',60,'g']], instructions: 'Cook the pasta. Gently sauté garlic in olive oil, stir in cream, and warm gently. Toss with the pasta and Parmesan until the sauce coats the pasta.' },
+    cookies: { title: 'Classic Cookies', family: 'Cookies', yield: 4, ingredients: [['Flour',120,'g'],['Butter',60,'g'],['Sugar',50,'g'],['Milk',20,'ml']], instructions: 'Cream softened butter with sugar, mix in flour and milk, and portion onto a lined tray. Bake using the time and temperature in your complete recipe.' }
+  };
+  const get = id => document.getElementById(id);
+  const buttons = document.querySelectorAll('[data-recipe]');
+  let selected = 'tomato';
+  const quantity = (value, unit) => Number(value.toFixed(2)) + (unit ? ' ' + unit : '');
+  function render() {
+    const recipe = recipes[selected];
+    const target = Number(get('demo-yield').value);
+    const factor = target / recipe.yield;
+    get('demo-title').textContent = recipe.title;
+    get('demo-family').textContent = 'Recipe family: ' + recipe.family;
+    get('demo-original').textContent = 'Original yield: ' + recipe.yield + ' servings';
+    get('demo-instructions').textContent = recipe.instructions;
+    get('demo-status').textContent = recipe.title + ' selected. Family: ' + recipe.family + '. Showing ' + target + ' servings.';
+    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.recipe === selected)));
+    // Only the fixed sample data above is used to build this markup.
+    get('demo-ingredients').innerHTML = recipe.ingredients.map(([name, amount, unit]) =>
+      '<tr><th scope="row">' + name + '</th><td>' + quantity(amount, unit) + '</td><td>' + quantity(amount * factor, unit) + '</td></tr>'
+    ).join('');
+    const related = Object.values(recipes).filter(other => other.family === recipe.family);
+    if (related.length < 2) {
+      get('demo-compare-title').textContent = 'No other sample recipes in this family';
+      get('demo-comparison').innerHTML = '<p class="preview-note">Select either Pasta recipe to explore two variations in the same family.</p>';
+      return;
+    }
+    get('demo-compare-title').textContent = 'Compare the ' + recipe.family + ' family at ' + target + ' servings';
+    const names = [...new Set(related.flatMap(other => other.ingredients.map(ingredient => ingredient[0])))];
+    get('demo-comparison').innerHTML = '<table><caption>Related recipes compared at the same yield</caption><thead><tr><th scope="col">Ingredient</th>' +
+      related.map(other => '<th scope="col">' + other.title + '</th>').join('') + '</tr></thead><tbody>' +
+      names.map(name => '<tr><th scope="row">' + name + '</th>' + related.map(other => {
+        const ingredient = other.ingredients.find(item => item[0] === name);
+        return '<td>' + (ingredient ? quantity(ingredient[1] * target / other.yield, ingredient[2]) : '&mdash;') + '</td>';
+      }).join('') + '</tr>').join('') + '</tbody></table>';
+  }
+  buttons.forEach(button => button.addEventListener('click', () => { selected = button.dataset.recipe; render(); }));
+  get('demo-yield').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
 </html>
