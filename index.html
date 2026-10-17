@@ -1,1 +1,73 @@
-[Console]::Write([IO.File]::ReadAllText([IO.Path]::Combine([Environment]::CurrentDirectory,'outputs/index.html')))
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recipe Helper | Introduction &amp; Cooking Guide</title><meta name="description" content="Meet Recipe Helper: learn cooking basics, discover how to save and scale recipes, and explore a preview of the tool.">
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #243b32; background: #f8f5ee; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header, main { max-width: 1100px; margin: auto; padding: 24px; }
+    header { padding-top: 44px; }
+    h1 { font-size: 2.5rem; margin: 0; }
+    h2 { margin-top: 0; }
+    p { line-height: 1.6; }
+    .layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+    section, aside { background: white; border: 1px solid #e2e5db; border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; }
+    input, select, textarea, button { font: inherit; border-radius: 8px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #b9c5bd; background: white; color: inherit; }
+    textarea { min-height: 110px; resize: vertical; }
+    button { border: 0; padding: 10px 14px; background: #27634c; color: white; cursor: pointer; }
+    button:hover { filter: brightness(.9); }
+    .secondary { background: #edf2ed; color: #243b32; }
+    .danger { background: #fff0ed; color: #963c30; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .recipe-link { display: block; width: 100%; text-align: left; margin: 8px 0; }
+    .recipe-link[aria-pressed="true"] { background: #27634c; color: white; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ingredient { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin: 10px 0; }
+    .muted, small { color: #617167; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e5db; }
+    #notice { min-height: 24px; }
+    .instructions { white-space: pre-wrap; }
+    [hidden] { display: none !important; }
+    @media (max-width: 750px) { .layout, .row { grid-template-columns: 1fr; } header, main { padding: 16px; } .ingredient { grid-template-columns: 2fr 1fr; } }
+:root{font-family:'Segoe UI',sans-serif;color:#293f34;background:#faf8f1}html{scroll-behavior:smooth;scroll-padding-top:20px}a{color:inherit}a:focus-visible,summary:focus-visible{outline:3px solid #a44e32;outline-offset:5px}.guide{max-width:1100px;margin:auto;padding:0 24px}.nav{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:26px 0;border-bottom:1px solid #dddccf}.brand{font:bold 25px Georgia,serif;text-decoration:none}.nav-links{display:flex;gap:22px;font-size:14px}.nav-links a{text-decoration:none}.nav-links a:hover{text-decoration:underline}.hero{padding:70px 0 55px;display:grid;grid-template-columns:1.3fr 1fr;gap:50px;align-items:center}.eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:700;color:#9b4a30}.hero h1{font:400 clamp(44px,5vw,68px)/1.05 Georgia,serif;letter-spacing:-.04em;margin:22px 0}.hero em{color:#a34e32}.intro{max-width:440px;color:#627064;font-size:17px;line-height:1.8}.cta{display:inline-block;margin-top:16px;padding:14px 22px;background:#294f3b;color:white;border-radius:7px;text-decoration:none;font-weight:600;font-size:14px}.cta:hover{background:#193c29}.art{border-radius:48% 48% 12px 12px;background:#e8ecdf;padding:28px;text-align:center}.art svg{width:100%;max-height:290px}.art p{font:italic 17px Georgia,serif;color:#53694b}.guide-section{padding:40px 0;border-top:1px solid #dddccf}.guide h2{font:400 33px Georgia,serif;margin:10px 0 26px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{padding:25px;border:1px solid #dfded1;border-radius:10px;background:#fffefa}.num{font:italic 28px Georgia,serif;color:#a34e32}.card h3{font:400 23px Georgia,serif;margin:16px 0 10px}.card p{color:#5c6b60;font-size:14px;line-height:1.8;margin-bottom:0}.tip{padding:16px 22px;background:#ecf0e3;border-left:3px solid #74805b;font-size:14px}.guide details{border-bottom:1px solid #dddccf;padding:16px 0;font-size:14px}.guide summary{cursor:pointer;font-weight:600;font-size:16px}.guide details p{max-width:850px;color:#5c6b60}body>header{border-top:1px solid #dddccf;padding-top:40px}body>header h1{font:400 38px Georgia,serif}main section,main aside{border-radius:10px;background:#fffefa;border-color:#dfded1}main h2{font:400 25px Georgia,serif}button{background:#294f3b}.guide-footer{text-align:center;padding:28px;border-top:1px solid #dddccf;font-size:13px;color:#617167}.skip{position:absolute;top:-80px;left:20px;background:white;padding:12px}.skip:focus{top:12px}@media(max-width:750px){.hero{grid-template-columns:1fr;padding:40px 0;gap:28px}.cards{grid-template-columns:1fr}.nav{flex-wrap:wrap}.nav-links{flex-wrap:wrap;gap:16px}.guide{padding:0 20px}.art svg{max-height:230px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  .preview-window{margin:28px 0 18px;background:#fffefa;border:1px solid #d9ddcf;border-radius:12px;overflow:hidden;box-shadow:0 15px 40px #253d320a}.preview-bar{display:flex;justify-content:space-between;gap:12px;padding:16px 24px;background:#edf0e6;border-bottom:1px solid #d9ddcf;font-size:11px;letter-spacing:.12em;font-weight:700}.preview-label{color:#66745e;letter-spacing:0;font-weight:400}.preview-body{display:grid;grid-template-columns:220px 1fr}.preview-sidebar{padding:26px 20px;border-right:1px solid #e2e5da;color:#65735f;font-size:14px}.preview-sidebar p:not(.eyebrow){padding:12px}.preview-selected{background:#e9eee2;color:#294f3b;border-radius:6px;font-weight:600}.preview-recipe{padding:28px}.preview-recipe h3{font:400 30px Georgia,serif;margin:10px 0 14px}.preview-recipe>p{font-size:14px}.preview-table{overflow-x:auto}.preview-table table{margin-top:20px;min-width:320px}.preview-table caption{text-align:left;font-size:13px;color:#617167;padding:8px}.preview-table tbody th{font-weight:500}.preview-table td:last-child{font-weight:700;color:#294f3b}.preview-note{font-size:13px!important;color:#617167;line-height:1.7}@media(max-width:750px){.preview-body{grid-template-columns:1fr}.preview-sidebar{display:none}.preview-recipe{padding:18px}.preview-bar{padding:14px 18px;letter-spacing:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#preview">Skip to tool preview</a>
+<div class="guide" id="home">
+<nav class="nav" aria-label="Main navigation"><a class="brand" href="#home">Recipe Helper.</a><div class="nav-links"><a href="#basics">Cooking basics</a><a href="#how-to">How it works</a><a href="#preview">Tool preview &rarr;</a></div></nav>
+<div class="hero"><div><p class="eyebrow">A little guidance. A lot of good food.</p><h1>Good cooking<br>starts with<br><em>simple things.</em></h1><p class="intro">A few kitchen basics, your favorite recipes, and a helping hand with the measuring. Let's make something delicious.</p><a class="cta" href="#preview">See the tool preview &rarr;</a></div>
+<div class="art"><svg viewBox="0 0 340 300" role="img" aria-label="Illustrated plate of vegetables and herbs"><ellipse cx="170" cy="156" rx="124" ry="122" fill="#d7dccb"/><circle cx="170" cy="146" r="122" fill="#fffdf4"/><circle cx="170" cy="146" r="100" fill="none" stroke="#e5e0ce" stroke-width="2"/><circle cx="170" cy="146" r="85" fill="#f0e7d0"/><g fill="#5e7d44" stroke="#426033" stroke-width="2"><ellipse cx="139" cy="118" rx="24" ry="41" transform="rotate(-35 139 118)"/><ellipse cx="195" cy="114" rx="24" ry="40" transform="rotate(35 195 114)"/><ellipse cx="201" cy="172" rx="24" ry="38" transform="rotate(65 201 172)"/><ellipse cx="136" cy="180" rx="24" ry="38" transform="rotate(-55 136 180)"/></g><g fill="#cb6040"><circle cx="158" cy="139" r="21"/><circle cx="191" cy="185" r="20"/><circle cx="208" cy="126" r="16"/></g><g fill="#eeb86a"><path d="M120 146l40 20-34 17z"/><path d="M172 91l22 39-33-8z"/><path d="M164 188l17 22-32 5z"/></g><g fill="#fff9e9"><rect x="174" y="143" width="17" height="17" rx="3"/><rect x="141" y="106" width="14" height="14" rx="3"/><rect x="206" y="158" width="13" height="16" rx="3"/></g><g fill="none" stroke="#848877" stroke-width="4" stroke-linecap="round"><path d="M16 85v53q0 10 10 10t10-10V85M26 85v150M310 85v150M310 85q24 36 0 60"/></g></svg><p>A little care makes a lovely meal.</p></div></div>
+<div class="guide-section" id="basics"><p class="eyebrow">Build your kitchen confidence</p><h2>Three habits for better cooking.</h2><div class="cards">
+<article class="card"><span class="num">01 /</span><h3>Prep before you cook</h3><p>Read the whole recipe first. Gather your ingredients, measure what you need, and chop vegetables before turning on the heat. Use a stable cutting board and handle sharp knives carefully.</p></article>
+<article class="card"><span class="num">02 /</span><h3>Get to know your heat</h3><p>A simmer has gentle bubbles; a boil bubbles vigorously. Saut&eacute; in a little oil over medium to medium-high heat, watching the pan. Give ingredients room so they brown evenly.</p></article>
+<article class="card"><span class="num">03 /</span><h3>Measure, then adjust</h3><p>Use level spoonfuls and consistent units. For baking, weigh ingredients when possible. In savory cooking, add seasoning gradually and taste when the food is safe to eat.</p></article></div><p class="tip"><strong>Your starting kit:</strong> a chef's knife, cutting board, saucepan, frying pan, mixing bowl, measuring spoons, and a kitchen scale.</p></div>
+<div class="guide-section" id="how-to"><p class="eyebrow">Your recipes, with less guesswork</p><h2>Meet your kitchen helper.</h2><div class="cards">
+<article class="card"><span class="num">01 /</span><h3>Add a favorite</h3><p>Choose <strong>+ New recipe</strong>. Enter a name, original yield, ingredients, and instructions. Amounts can be decimals or fractions, like 0.5, 1/2, or 1 1/2. Select <strong>Save recipe</strong>.</p></article>
+<article class="card"><span class="num">02 /</span><h3>Make the right amount</h3><p>Select a recipe and change <strong>How much do you want to make?</strong> Every ingredient scales together. Changing 4 servings to 2 halves each ingredient amount.</p></article>
+<article class="card"><span class="num">03 /</span><h3>Try a little variation</h3><p>Choose <strong>Create variation</strong> to adapt a favorite. Give related recipes the same <strong>Recipe family</strong>, then use <strong>Compare a variation</strong> to see ingredient differences at the selected yield.</p></article></div>
+<details><summary>How do I keep my recipes safe?</summary><p>Recipes save in this browser on this device. Use <strong>Export backup</strong> regularly to download a JSON copy. <strong>Import backup</strong> adds recipes from a saved backup and keeps existing recipes. Export before moving the page or switching browsers, since saved recipes may not follow you.</p></details>
+<details><summary>Does scaling change cooking time?</summary><p>Ingredient amounts scale proportionally; cooking time and oven temperature do not change automatically. Choose suitable cookware and check doneness. For a fraction of an egg, beat it first and weigh the needed portion. The helper does not convert between measurement units.</p></details></div></div>
+<section class="guide" id="preview" aria-labelledby="preview-title">
+  <div class="guide-section">
+    <p class="eyebrow">A look inside</p><h2 id="preview-title">Your recipe, at just the right size.</h2>
+    <p class="intro">Recipe Helper brings your ingredients, quantities, and variations together. Here's an example of what scaling a recipe looks like.</p>
+    <div class="preview-window">
+      <div class="preview-bar"><span>RECIPE HELPER / PREVIEW</span><span class="preview-label">Illustration only</span></div>
+      <div class="preview-body"><div class="preview-sidebar"><p class="eyebrow">Recipe collection</p><p class="preview-selected">Simple pancakes</p><p>Tomato pasta</p><p>Classic cookies</p></div>
+      <div class="preview-recipe"><p class="eyebrow">Breakfast favorites</p><h3>Simple pancakes</h3><p>Original yield: <strong>4 servings</strong> &nbsp;&rarr;&nbsp; Desired yield: <strong>2 servings</strong></p>
+      <div class="preview-table"><table><caption>Example: halving a pancake recipe</caption><thead><tr><th scope="col">Ingredient</th><th scope="col">Original</th><th scope="col">You need</th></tr></thead><tbody><tr><th scope="row">Flour</th><td>200 g</td><td>100 g</td></tr><tr><th scope="row">Milk</th><td>300 ml</td><td>150 ml</td></tr><tr><th scope="row">Eggs</th><td>2</td><td>1</td></tr><tr><th scope="row">Baking powder</th><td>2 tsp</td><td>1 tsp</td></tr></tbody></table></div>
+      <p class="preview-note">Half the servings, half the ingredients. Cooking time and temperature still need your judgment.</p></div></div>
+    </div>
+    <p class="preview-note">This is a static preview of the separate Recipe Helper tool. Use the steps above when working in the tool; this introduction page does not store or edit recipes.</p>
+  </div>
+</section>
+<footer class="guide-footer">Recipe Helper &middot; A little more confidence in every meal. <a href="#home">Back to top &uarr;</a></footer></body>
+</html>
