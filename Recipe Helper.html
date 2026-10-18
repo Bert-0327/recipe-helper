@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recipe Helper</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #243b32; background: #f8f5ee; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header, main { max-width: 1100px; margin: auto; padding: 24px; }
+    header { padding-top: 44px; }
+    h1 { font-size: 2.5rem; margin: 0; }
+    h2 { margin-top: 0; }
+    p { line-height: 1.6; }
+    .layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+    section, aside { background: white; border: 1px solid #e2e5db; border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; }
+    input, select, textarea, button { font: inherit; border-radius: 8px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #b9c5bd; background: white; color: inherit; }
+    textarea { min-height: 110px; resize: vertical; }
+    button { border: 0; padding: 10px 14px; background: #27634c; color: white; cursor: pointer; }
+    button:hover { filter: brightness(.9); }
+    .secondary { background: #edf2ed; color: #243b32; }
+    .danger { background: #fff0ed; color: #963c30; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .recipe-link { display: block; width: 100%; text-align: left; margin: 8px 0; }
+    .recipe-link[aria-pressed="true"] { background: #27634c; color: white; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ingredient { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin: 10px 0; }
+    .muted, small { color: #617167; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e5db; }
+    #notice { min-height: 24px; }
+    .instructions { white-space: pre-wrap; }
+    [hidden] { display: none !important; }
+    @media (max-width: 750px) { .layout, .row { grid-template-columns: 1fr; } header, main { padding: 16px; } .ingredient { grid-template-columns: 2fr 1fr; } }
+  </style>
+</head>
+<body>
+  <header id="recipe-book"><p class="muted">YOUR KITCHEN, YOUR RECIPES</p><h1>Your recipe book</h1><p>Keep your favorites, resize every ingredient, and explore recipe variations.</p><p id="notice" role="status" aria-live="polite"></p></header>
+  <main class="layout">
+    <aside>
+      <h2>Recipe book</h2>
+      <button id="new">+ New recipe</button>
+      <label for="search">Find a recipe or family</label><input id="search" type="search" placeholder="Cake, cookies…">
+      <div id="recipes"></div>
+      <div class="actions"><button id="export" class="secondary">Export backup</button><button id="import" class="secondary">Import backup</button></div>
+      <input id="backup" type="file" accept="application/json,.json" hidden>
+      <p><small>Recipes save in this browser on this device. Export a backup to move them or protect them from browser data clearing.</small></p>
+    </aside>
+    <div>
+      <section id="editor" hidden>
+        <h2 id="editor-title">New recipe</h2>
+        <form id="form">
+          <label for="title">Recipe name</label><input id="title" required maxlength="120" placeholder="Classic cookies">
+          <label for="family">Recipe family</label><input id="family" maxlength="120" placeholder="Cookies or cakes">
+          <div class="row"><div><label for="yield">Original yield</label><input id="yield" type="number" min="0.000001" step="any" required value="10"></div><div><label for="yield-unit">Yield label</label><input id="yield-unit" required maxlength="40" value="servings" placeholder="cookies, slices, servings"></div></div>
+          <h3>Ingredients</h3><p class="muted">Enter a number or fraction such as 0.5, 1/2, or 1 1/2. Use each ingredient once and consistent names across variations.</p>
+          <div id="ingredient-rows"></div><button id="add-ingredient" type="button" class="secondary">+ Add ingredient</button>
+          <label for="instructions">Instructions</label><textarea id="instructions" placeholder="How do you make it?"></textarea>
+          <p id="form-notice" role="status" aria-live="polite"></p>
+          <div class="actions"><button type="submit">Save recipe</button><button id="cancel" type="button" class="secondary">Cancel</button></div>
+        </form>
+      </section>
+      <section id="empty"><h2>Your recipe book starts here</h2><p>Add your first recipe, then choose how much you want to make. Every ingredient will scale together.</p></section>
+      <section id="detail" hidden>
+        <p id="family-label" class="muted"></p><h2 id="recipe-title"></h2>
+        <div class="actions"><button id="edit" class="secondary">Edit recipe</button><button id="variation" class="secondary">Create variation</button><button id="delete" class="danger">Delete recipe</button></div>
+        <label for="target">How much do you want to make?</label><input id="target" type="number" min="0.000001" step="any">
+        <p id="scale-note" class="muted"></p>
+        <table><thead><tr><th>Ingredient</th><th>Original</th><th>You need</th></tr></thead><tbody id="scaled"></tbody></table>
+        <p><small>Amounts scale proportionally. For fractional eggs, beat an egg and measure the needed portion by weight. Cooking time and temperature do not scale automatically.</small></p>
+        <h3>Instructions</h3><p id="steps" class="instructions"></p>
+      </section>
+      <section id="comparison" hidden>
+        <h2>Compare a variation</h2><label for="compare">Related recipe</label><select id="compare"></select>
+        <p class="muted">Compare both recipes at the yield selected above. Measurements in different units are shown for review, without guessing conversions.</p>
+        <div id="changes"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const key = 'recipe-helper-v1';
+    const normalize = value => value.trim().toLowerCase();
+    let recipes = [], selected = null, editing = null;
+    function notice(message) { $('notice').textContent = message; $('form-notice').textContent = message; }
+    function amount(value) {
+      const text = value.trim();
+      if (/^\d+(?:\.\d+)?$/.test(text)) return Number(text);
+      const match = text.match(/^(?:(\d+)\s+)?(\d+)\/(\d+)$/);
+      return match && Number(match[3]) > 0 ? Number(match[1] || 0) + Number(match[2]) / Number(match[3]) : NaN;
+    }
+    function valid(recipe) {
+      return recipe && typeof recipe.id === 'string' && typeof recipe.title === 'string' && recipe.title.trim() && typeof recipe.family === 'string' && Number.isFinite(recipe.yield) && recipe.yield > 0 && typeof recipe.unit === 'string' && recipe.unit.trim() && typeof recipe.instructions === 'string' && Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 && recipe.ingredients.every(i => i && typeof i.name === 'string' && i.name.trim() && Number.isFinite(i.quantity) && i.quantity > 0 && typeof i.unit === 'string') && new Set(recipe.ingredients.map(i => normalize(i.name))).size === recipe.ingredients.length;
+    }
+    function persist(next) {
+      try { localStorage.setItem(key, JSON.stringify(next)); recipes = next; return true; }
+      catch { notice('Could not save in this browser. Export your existing recipes and check browser storage settings.'); return false; }
+    }
+    function quantity(value) { return Number(value.toPrecision(10)).toString(); }
+    function measurement(ingredient, factor = 1) { return `${quantity(ingredient.quantity * factor)} ${ingredient.unit}`.trim(); }
+    function cell(row, text) { const td = document.createElement('td'); td.textContent = text; row.append(td); }
+    function list() {
+      $('recipes').replaceChildren();
+      const query = normalize($('search').value);
+      for (const recipe of recipes.filter(r => normalize(r.title + ' ' + r.family).includes(query))) {
+        const button = document.createElement('button');
+        button.className = 'recipe-link secondary'; button.textContent = recipe.title + (recipe.family ? ` · ${recipe.family}` : '');
+        button.setAttribute('aria-pressed', String(recipe.id === selected));
+        button.onclick = () => { selected = recipe.id; $('editor').hidden = true; $('target').value = recipe.yield; render(); };
+        $('recipes').append(button);
+      }
+      if (!$('recipes').children.length) $('recipes').textContent = recipes.length ? 'No matching recipes.' : 'No recipes yet.';
+    }
+    function render() {
+      list();
+      const recipe = recipes.find(r => r.id === selected);
+      $('empty').hidden = Boolean(recipe) || !$('editor').hidden;
+      $('detail').hidden = !recipe; $('comparison').hidden = true;
+      if (!recipe) return;
+      $('recipe-title').textContent = recipe.title; $('family-label').textContent = recipe.family || 'Uncategorized';
+      $('steps').textContent = recipe.instructions || 'No instructions added.';
+      $('scaled').replaceChildren();
+      const target = Number($('target').value);
+      if (!Number.isFinite(target) || target <= 0) { $('scale-note').textContent = 'Enter a yield greater than zero.'; return; }
+      const factor = target / recipe.yield;
+      if (!Number.isFinite(factor) || recipe.ingredients.some(i => !Number.isFinite(i.quantity * factor))) { $('scale-note').textContent = 'This yield is too large to calculate. Enter a smaller amount.'; return; }
+      $('scale-note').textContent = `Original: ${quantity(recipe.yield)} ${recipe.unit}. Making: ${quantity(target)} ${recipe.unit}. Multiply every ingredient by ${quantity(factor)}.`;
+      for (const ingredient of recipe.ingredients) { const row = document.createElement('tr'); cell(row, ingredient.name); cell(row, measurement(ingredient)); cell(row, measurement(ingredient, factor)); $('scaled').append(row); }
+      const previous = $('compare').value;
+      $('compare').replaceChildren();
+      const related = recipe.family.trim() ? recipes.filter(r => r.id !== selected && normalize(r.family) === normalize(recipe.family)) : [];
+      for (const other of related) { const option = document.createElement('option'); option.value = other.id; option.textContent = other.title; $('compare').append(option); }
+      if (related.some(r => r.id === previous)) $('compare').value = previous;
+      $('comparison').hidden = related.length === 0;
+      compare();
+    }
+    function compare() {
+      $('changes').replaceChildren();
+      const base = recipes.find(r => r.id === selected), other = recipes.find(r => r.id === $('compare').value);
+      if (!base || !other) return;
+      const target = Number($('target').value), left = target / base.yield, right = target / other.yield;
+      if (!Number.isFinite(right) || other.ingredients.some(i => !Number.isFinite(i.quantity * right))) { $('changes').textContent = 'This yield is too large to compare. Enter a smaller amount.'; return; }
+      const changes = [];
+      const before = new Map(base.ingredients.map(i => [normalize(i.name), i]));
+      const after = new Map(other.ingredients.map(i => [normalize(i.name), i]));
+      for (const [name, ingredient] of before) {
+        const replacement = after.get(name);
+        if (!replacement) changes.push(`Remove ${ingredient.name}: ${measurement(ingredient, left)}.`);
+        else if (normalize(ingredient.unit) !== normalize(replacement.unit) || Math.abs(ingredient.quantity * left - replacement.quantity * right) > 1e-9 * Math.max(1, ingredient.quantity * left, replacement.quantity * right)) changes.push(`Change ${ingredient.name}: ${measurement(ingredient, left)} → ${measurement(replacement, right)}.`);
+      }
+      for (const [name, ingredient] of after) if (!before.has(name)) changes.push(`Add ${ingredient.name}: ${measurement(ingredient, right)}.`);
+      if (normalize(base.unit) !== normalize(other.unit)) changes.unshift(`Yield labels differ (${base.unit} / ${other.unit}); check that these portions are comparable.`);
+      if (!changes.length) changes.push('Ingredient amounts match at this yield.');
+      for (const change of changes) { const p = document.createElement('p'); p.textContent = change; $('changes').append(p); }
+      if (base.instructions !== other.instructions) {
+        const heading = document.createElement('h3'); heading.textContent = `Instructions for ${other.title}`;
+        const p = document.createElement('p'); p.className = 'instructions'; p.textContent = other.instructions || 'No instructions added.'; $('changes').append(heading, p);
+      }
+    }
+    function ingredientRow(ingredient = { name: '', quantity: '', unit: '' }) {
+      const row = document.createElement('div'); row.className = 'ingredient';
+      for (const [field, placeholder] of [['name', 'Ingredient'], ['quantity', 'Amount'], ['unit', 'Unit (cup, g…)']]) {
+        const input = document.createElement('input'); input.dataset.field = field; input.value = ingredient[field]; input.placeholder = placeholder; input.setAttribute('aria-label', placeholder); input.required = field !== 'unit';
+        if (field === 'quantity') {
+          const validate = () => {
+            const value = amount(input.value);
+            input.setCustomValidity(input.value && (!Number.isFinite(value) || value <= 0) ? 'Enter a positive amount such as 1, 0.5, 1/2, or 1 1/2.' : '');
+          };
+          input.addEventListener('input', validate); validate();
+        }
+        row.append(input);
+      }
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'danger'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove ingredient'); remove.onclick = () => row.remove(); row.append(remove); $('ingredient-rows').append(row);
+    }
+    function openEditor(recipe, variation = false) {
+      editing = recipe && !variation ? recipe.id : null;
+      $('editor-title').textContent = variation ? 'Create variation' : editing ? 'Edit recipe' : 'New recipe';
+      $('form').reset(); $('form-notice').textContent = ''; $('ingredient-rows').replaceChildren();
+      $('title').value = recipe ? recipe.title + (variation ? ' variation' : '') : '';
+      $('family').value = recipe ? recipe.family || (variation ? recipe.title : '') : '';
+      $('yield').value = recipe ? recipe.yield : 10; $('yield-unit').value = recipe ? recipe.unit : 'servings'; $('instructions').value = recipe ? recipe.instructions : '';
+      (recipe ? recipe.ingredients : [{ name: '', quantity: '', unit: '' }]).forEach(ingredientRow);
+      $('editor').hidden = false; $('empty').hidden = true; $('title').focus();
+    }
+    $('form').onsubmit = event => {
+      event.preventDefault();
+      const ingredients = [...$('ingredient-rows').children].map(row => {
+        const inputs = row.querySelectorAll('input'); return { name: inputs[0].value.trim(), quantity: amount(inputs[1].value), unit: inputs[2].value.trim() };
+      });
+      const recipe = { id: editing || crypto.randomUUID(), title: $('title').value.trim(), family: $('family').value.trim(), yield: Number($('yield').value), unit: $('yield-unit').value.trim(), instructions: $('instructions').value.trim(), ingredients };
+      if (!valid(recipe)) { notice('Enter a name, a positive yield, and at least one ingredient with a positive amount. Ingredient names must be unique.'); return; }
+      let next = editing ? recipes.map(r => r.id === editing ? recipe : r) : [...recipes, recipe];
+      if (!editing && selected) {
+        const original = recipes.find(r => r.id === selected);
+        if ($('editor-title').textContent === 'Create variation' && original && !original.family.trim()) next = next.map(r => r.id === selected ? { ...r, family: recipe.family } : r);
+      }
+      if (!persist(next)) return;
+      selected = recipe.id; $('editor').hidden = true; $('target').value = recipe.yield; notice('Recipe saved.'); render();
+    };
+    $('new').onclick = () => openEditor();
+    $('edit').onclick = () => openEditor(recipes.find(r => r.id === selected));
+    $('variation').onclick = () => openEditor(recipes.find(r => r.id === selected), true);
+    $('cancel').onclick = () => { $('editor').hidden = true; render(); };
+    $('add-ingredient').onclick = () => ingredientRow();
+    $('target').oninput = render; $('compare').onchange = compare; $('search').oninput = list;
+    $('delete').onclick = () => {
+      const recipe = recipes.find(r => r.id === selected);
+      if (!recipe || !confirm(`Delete ${recipe.title}?`)) return;
+      if (!persist(recipes.filter(r => r.id !== selected))) return;
+      selected = recipes[0]?.id || null; $('editor').hidden = true; $('target').value = recipes[0]?.yield || ''; notice('Recipe deleted.'); render();
+    };
+    $('export').onclick = () => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(recipes, null, 2)], { type: 'application/json' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'recipe-helper-backup.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    $('import').onclick = () => $('backup').click();
+    $('backup').onchange = async () => {
+      const file = $('backup').files[0]; if (!file) return;
+      try {
+        const imported = JSON.parse(await file.text());
+        if (!Array.isArray(imported) || !imported.every(valid)) throw new Error('Invalid backup');
+        const added = imported.map(r => ({ ...r, id: crypto.randomUUID() }));
+        if (!persist([...recipes, ...added])) return;
+        selected = added[0]?.id || selected; $('editor').hidden = true; $('target').value = recipes.find(r => r.id === selected)?.yield || ''; notice(`Imported ${added.length} recipes. Existing recipes were kept.`); render();
+      } catch { notice('Could not import this file. Choose a Recipe Helper JSON backup.'); }
+      finally { $('backup').value = ''; }
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!Array.isArray(saved) || !saved.every(valid)) throw new Error('Invalid saved recipes');
+      recipes = saved;
+    } catch { notice('Saved recipes could not be loaded. Existing browser data has not been changed; import a backup before saving new recipes.'); }
+    selected = recipes[0]?.id || null; $('target').value = recipes[0]?.yield || ''; render();
+  </script>
+</body>
+</html>
