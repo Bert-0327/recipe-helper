@@ -25,7 +25,9 @@
     .danger { background: #fff0ed; color: #963c30; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     .recipe-link { display: block; width: 100%; text-align: left; margin: 8px 0; }
-    .recipe-link[aria-pressed="true"] { background: #27634c; color: white; }
+    .recipe-link[aria-expanded="true"] { background: #27634c; color: white; }
+    .recipe-link::after { content: '▸'; float: right; margin-left: 8px; }
+    .recipe-link[aria-expanded="true"]::after { content: '▾'; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .ingredient { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; margin: 10px 0; }
     .muted, small { color: #617167; }
@@ -34,6 +36,28 @@
     #notice { min-height: 24px; }
     .instructions { white-space: pre-wrap; }
     [hidden] { display: none !important; }
+    #paste-panel { border: 2px solid #27634c; }
+    #paste-text { min-height: 240px; }
+    .review-box { background: #fff8e7; border: 1px solid #d6b66a; border-radius: 10px; padding: 16px; margin: 16px 0; overflow-wrap: anywhere; }
+    .review-box p { margin-top: 0; }
+    #review-items { padding-left: 22px; }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; font-weight: 600; }
+    pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid #b46b14; outline-offset: 3px; }
+    .field-labels { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; font-size: .85rem; color: #617167; }
+    .new-recipe { position: relative; display: inline-block; }
+    .new-options { position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; min-width: 220px; padding: 6px; border: 1px solid #b9c5bd; border-radius: 10px; background: white; box-shadow: 0 6px 18px #243b3226; }
+    .new-options button { display: block; width: 100%; text-align: left; color: #243b32; background: white; }
+    .new-options button:hover { background: #edf2ed; filter: none; }
+    .easy-option { display: grid; grid-template-columns: 1fr 38px; align-items: center; }
+    .new-options .help-button { width: 32px; height: 32px; padding: 0; border: 1px solid #b9c5bd; border-radius: 50%; text-align: center; font-weight: 700; }
+    .quick-help { margin: 6px 4px 4px; padding: 10px; border-radius: 8px; background: #f0f5ed; font-size: .85rem; line-height: 1.5; }
+    .quick-help p { margin: 0 0 8px; }
+    .quick-help p:last-child { margin-bottom: 0; }
+    .format-guide { margin: 14px 0 20px; padding: 12px 14px; background: #f5f7f1; border-radius: 10px; }
+    .format-guide li { margin: 8px 0; line-height: 1.5; }
+    .format-guide pre { padding: 12px; border: 1px solid #d6dfd0; border-radius: 8px; background: white; }
     @media (max-width: 750px) { .layout, .row { grid-template-columns: 1fr; } header, main { padding: 16px; } .ingredient { grid-template-columns: 2fr 1fr; } }
   </style>
 </head>
@@ -42,7 +66,23 @@
   <main class="layout">
     <aside>
       <h2>Recipe book</h2>
-      <button id="new">+ New recipe</button>
+      <div id="new-recipe" class="new-recipe">
+        <button id="new" type="button" aria-expanded="false" aria-controls="new-options">+ New recipe <span aria-hidden="true">▾</span></button>
+        <div id="new-options" class="new-options" role="group" aria-label="New recipe options" hidden>
+          <button id="manual-entry" type="button">Manual entry</button>
+          <div id="easy-help-area">
+            <div class="easy-option">
+              <button id="open-paste" type="button">Easy fill in</button>
+              <button id="easy-help-button" class="help-button" type="button" aria-label="How to use Easy fill in" aria-describedby="easy-quick-help" aria-controls="easy-quick-help" aria-expanded="false">?</button>
+            </div>
+            <div id="easy-quick-help" class="quick-help" role="tooltip" hidden>
+              <p><strong>Use organized English recipe text.</strong> Put the title and yield first, then Ingredients and Instructions.</p>
+              <p>One ingredient per line: <strong>2 cups cooked rice</strong>. Check all names and amounts before saving.</p>
+              <p>Choose Easy fill in for the full guide and example. Nothing saves until you click Save recipe.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <label for="search">Find a recipe or family</label><input id="search" type="search" placeholder="Cake, cookies…">
       <div id="recipes"></div>
       <div class="actions"><button id="export" class="secondary">Export backup</button><button id="import" class="secondary">Import backup</button></div>
@@ -50,6 +90,53 @@
       <p><small>Recipes save in this browser on this device. Export a backup to move them or protect them from browser data clearing.</small></p>
     </aside>
     <div>
+      <section id="detail" hidden>
+        <p id="family-label" class="muted"></p><h2 id="recipe-title" tabindex="-1"></h2>
+        <div class="actions"><button id="edit" class="secondary">Edit recipe</button><button id="variation" class="secondary">Create variation</button><button id="delete" class="danger">Delete recipe</button></div>
+        <label for="target">How much do you want to make?</label><input id="target" type="number" min="0.000001" step="any">
+        <p id="scale-note" class="muted"></p>
+        <table><thead><tr><th>Ingredient</th><th>Original</th><th>You need</th></tr></thead><tbody id="scaled"></tbody></table>
+        <p><small>Amounts scale proportionally. For fractional eggs, beat an egg and measure the needed portion by weight. Cooking time and temperature do not scale automatically.</small></p>
+        <h3>Instructions</h3><p id="steps" class="instructions"></p>
+        <details id="saved-source" hidden><summary>Original text and import notes</summary><pre id="saved-original"></pre><ul id="saved-notes"></ul></details>
+      </section>
+      <section id="comparison" hidden>
+        <h2>Compare a variation</h2><label for="compare">Related recipe</label><select id="compare"></select>
+        <p class="muted">Compare both recipes at the yield selected above. Measurements in different units are shown for review, without guessing conversions.</p>
+        <div id="changes"></div>
+      </section>
+      <section id="paste-panel" hidden>
+        <h2>Easy fill in</h2>
+        <p>Paste your recipe text to fill in the form. Review and edit it, then click Save recipe. This simple helper recognizes headings, amounts, and numbered steps. It does not use AI or guess missing details.</p>
+        <p id="paste-format-note"><strong>Best format:</strong> English recipe title, yield, an Ingredients section with one ingredient per line, then an Instructions section. For example: <strong>2 cups cooked rice</strong>.</p>
+        <details class="format-guide">
+          <summary>Formatting guide and example</summary>
+          <ul>
+            <li>Put the recipe name on the first line. Before the sections, add a yield such as <strong>Serves: 2</strong>, <strong>Makes: 8 pieces</strong>, or <strong>Yield: 8 pieces</strong>.</li>
+            <li>Use an <strong>Ingredients</strong> or <strong>What you'll need</strong> heading. Put each ingredient on its own line, with the amount, unit, then name: <strong>2 cups cooked rice</strong>. Common units include cups, tbsp, tsp, g, ml, cans, and sheets. Decimals and fractions such as <strong>0.5</strong>, <strong>1/2</strong>, and <strong>1 1/2</strong> work.</li>
+            <li>Use <strong>Instructions</strong>, <strong>Directions</strong>, <strong>Method</strong>, <strong>Steps</strong>, or <strong>Preparation</strong> for cooking steps. Numbered steps are welcome.</li>
+            <li>Amounts such as <strong>1–2</strong>, <strong>a little</strong>, or <strong>to taste</strong> need manual review. Keep them in the text for reference; the helper cannot turn them into an exact amount. Check unfamiliar units and package sizes yourself.</li>
+            <li>Paste recipe text, not a video or link. This helper does not watch videos, open links, or translate. Use up to <strong>30,000 characters</strong>.</li>
+            <li>Check the recipe name, ingredient names, quantities, units, yield, and steps in the filled form. Missing amounts and yield stay blank and are flagged; fill them before saving. Your original text stays available. <strong>Nothing saves until you click Save recipe.</strong></li>
+          </ul>
+          <p><strong>A short example</strong> — you can copy this format:</p>
+          <pre>Simple rice bowl
+Serves: 2
+
+Ingredients
+2 cups cooked rice
+1 tbsp soy sauce
+
+Instructions
+1. Heat the cooked rice until hot.
+2. Stir in the soy sauce and serve.</pre>
+        </details>
+        <label for="paste-text">Recipe text</label>
+        <textarea id="paste-text" maxlength="30000" aria-describedby="paste-format-note" placeholder="Spam musubi&#10;Makes: 8 pieces&#10;&#10;Ingredients&#10;2 cups cooked rice&#10;1 can Spam&#10;2 sheets nori&#10;&#10;Instructions&#10;1. Slice and pan-fry the Spam.&#10;2. Shape the rice, top with Spam, and wrap with nori."></textarea>
+        <p class="muted"><small>Works best with English headings such as Ingredients and Instructions, and one ingredient per line. Your text stays in this browser.</small></p>
+        <div class="actions"><button id="parse-paste">Fill recipe form</button><button id="example" class="secondary">Try musubi example</button><button id="ambiguous-example" class="secondary">Try missing amounts</button><button id="close-paste" class="secondary">Close</button></div>
+        <p id="paste-notice" role="status" aria-live="polite"></p>
+      </section>
       <section id="editor" hidden>
         <h2 id="editor-title">New recipe</h2>
         <form id="form">
@@ -57,27 +144,20 @@
           <label for="family">Recipe family</label><input id="family" maxlength="120" placeholder="Cookies or cakes">
           <div class="row"><div><label for="yield">Original yield</label><input id="yield" type="number" min="0.000001" step="any" required value="10"></div><div><label for="yield-unit">Yield label</label><input id="yield-unit" required maxlength="40" value="servings" placeholder="cookies, slices, servings"></div></div>
           <h3>Ingredients</h3><p class="muted">Enter a number or fraction such as 0.5, 1/2, or 1 1/2. Use each ingredient once and consistent names across variations.</p>
+          <div class="field-labels" aria-hidden="true"><span>Ingredient</span><span>Amount</span><span>Unit</span><span></span></div>
           <div id="ingredient-rows"></div><button id="add-ingredient" type="button" class="secondary">+ Add ingredient</button>
           <label for="instructions">Instructions</label><textarea id="instructions" placeholder="How do you make it?"></textarea>
+          <div id="paste-review" class="review-box" hidden>
+            <p><strong>Check against your original text</strong></p>
+            <p>Review every field. Missing amounts and yield must be filled before saving. Unmatched text below is kept with the saved recipe for reference.</p>
+            <ul id="review-items"></ul>
+            <details open><summary>Original pasted text</summary><pre id="original-text"></pre></details>
+          </div>
           <p id="form-notice" role="status" aria-live="polite"></p>
           <div class="actions"><button type="submit">Save recipe</button><button id="cancel" type="button" class="secondary">Cancel</button></div>
         </form>
       </section>
       <section id="empty"><h2>Your recipe book starts here</h2><p>Add your first recipe, then choose how much you want to make. Every ingredient will scale together.</p></section>
-      <section id="detail" hidden>
-        <p id="family-label" class="muted"></p><h2 id="recipe-title"></h2>
-        <div class="actions"><button id="edit" class="secondary">Edit recipe</button><button id="variation" class="secondary">Create variation</button><button id="delete" class="danger">Delete recipe</button></div>
-        <label for="target">How much do you want to make?</label><input id="target" type="number" min="0.000001" step="any">
-        <p id="scale-note" class="muted"></p>
-        <table><thead><tr><th>Ingredient</th><th>Original</th><th>You need</th></tr></thead><tbody id="scaled"></tbody></table>
-        <p><small>Amounts scale proportionally. For fractional eggs, beat an egg and measure the needed portion by weight. Cooking time and temperature do not scale automatically.</small></p>
-        <h3>Instructions</h3><p id="steps" class="instructions"></p>
-      </section>
-      <section id="comparison" hidden>
-        <h2>Compare a variation</h2><label for="compare">Related recipe</label><select id="compare"></select>
-        <p class="muted">Compare both recipes at the yield selected above. Measurements in different units are shown for review, without guessing conversions.</p>
-        <div id="changes"></div>
-      </section>
     </div>
   </main>
   <script>
@@ -85,7 +165,8 @@
     const $ = id => document.getElementById(id);
     const key = 'recipe-helper-v1';
     const normalize = value => value.trim().toLowerCase();
-    let recipes = [], selected = null, editing = null;
+    let recipes = [], selected = null, editing = null, recipeExpanded = true, variationSourceId = null;
+    let pastedSource = '', pasteNotes = [];
     function notice(message) { $('notice').textContent = message; $('form-notice').textContent = message; }
     function amount(value) {
       const text = value.trim();
@@ -109,8 +190,24 @@
       for (const recipe of recipes.filter(r => normalize(r.title + ' ' + r.family).includes(query))) {
         const button = document.createElement('button');
         button.className = 'recipe-link secondary'; button.textContent = recipe.title + (recipe.family ? ` · ${recipe.family}` : '');
-        button.setAttribute('aria-pressed', String(recipe.id === selected));
-        button.onclick = () => { selected = recipe.id; $('editor').hidden = true; $('target').value = recipe.yield; render(); };
+        const expanded = recipe.id === selected && recipeExpanded;
+        button.setAttribute('aria-expanded', String(expanded)); button.setAttribute('aria-controls', 'detail');
+        button.title = expanded ? 'Hide recipe details' : 'Show recipe details';
+        button.onclick = () => {
+          const switching = selected !== recipe.id;
+          recipeExpanded = switching || !recipeExpanded;
+          selected = recipe.id;
+          if (switching) $('target').value = recipe.yield;
+          // Browsing saved recipes must not clear an open form or pasted text.
+          render();
+          if (recipeExpanded) {
+            $('recipe-title').focus({ preventScroll: true });
+            $('detail').scrollIntoView({ behavior: 'auto', block: 'start' });
+          } else {
+            $('recipes').querySelector('[data-recipe-id="' + CSS.escape(recipe.id) + '"]')?.focus({ preventScroll: true });
+          }
+        };
+        button.dataset.recipeId = recipe.id;
         $('recipes').append(button);
       }
       if (!$('recipes').children.length) $('recipes').textContent = recipes.length ? 'No matching recipes.' : 'No recipes yet.';
@@ -118,11 +215,14 @@
     function render() {
       list();
       const recipe = recipes.find(r => r.id === selected);
-      $('empty').hidden = Boolean(recipe) || !$('editor').hidden;
-      $('detail').hidden = !recipe; $('comparison').hidden = true;
-      if (!recipe) return;
+      $('empty').hidden = Boolean(recipe) || !$('editor').hidden || !$('paste-panel').hidden;
+      $('detail').hidden = !recipe || !recipeExpanded; $('comparison').hidden = true;
+      if (!recipe || !recipeExpanded) return;
       $('recipe-title').textContent = recipe.title; $('family-label').textContent = recipe.family || 'Uncategorized';
       $('steps').textContent = recipe.instructions || 'No instructions added.';
+      $('saved-source').hidden = !recipe.sourceText;
+      $('saved-original').textContent = recipe.sourceText || '';
+      showNotes($('saved-notes'), Array.isArray(recipe.importNotes) ? recipe.importNotes : []);
       $('scaled').replaceChildren();
       const target = Number($('target').value);
       if (!Number.isFinite(target) || target <= 0) { $('scale-note').textContent = 'Enter a yield greater than zero.'; return; }
@@ -178,13 +278,18 @@
     }
     function openEditor(recipe, variation = false) {
       editing = recipe && !variation ? recipe.id : null;
+      variationSourceId = variation ? recipe?.id || null : null;
+      recipeExpanded = false; $('paste-panel').hidden = true;
       $('editor-title').textContent = variation ? 'Create variation' : editing ? 'Edit recipe' : 'New recipe';
       $('form').reset(); $('form-notice').textContent = ''; $('ingredient-rows').replaceChildren();
+      pastedSource = typeof recipe?.sourceText === 'string' ? recipe.sourceText : '';
+      pasteNotes = Array.isArray(recipe?.importNotes) ? recipe.importNotes.filter(n => typeof n === 'string') : [];
+      showPasteReview();
       $('title').value = recipe ? recipe.title + (variation ? ' variation' : '') : '';
       $('family').value = recipe ? recipe.family || (variation ? recipe.title : '') : '';
       $('yield').value = recipe ? recipe.yield : 10; $('yield-unit').value = recipe ? recipe.unit : 'servings'; $('instructions').value = recipe ? recipe.instructions : '';
       (recipe ? recipe.ingredients : [{ name: '', quantity: '', unit: '' }]).forEach(ingredientRow);
-      $('editor').hidden = false; $('empty').hidden = true; $('title').focus();
+      $('editor').hidden = false; render(); $('title').focus();
     }
     $('form').onsubmit = event => {
       event.preventDefault();
@@ -192,26 +297,165 @@
         const inputs = row.querySelectorAll('input'); return { name: inputs[0].value.trim(), quantity: amount(inputs[1].value), unit: inputs[2].value.trim() };
       });
       const recipe = { id: editing || crypto.randomUUID(), title: $('title').value.trim(), family: $('family').value.trim(), yield: Number($('yield').value), unit: $('yield-unit').value.trim(), instructions: $('instructions').value.trim(), ingredients };
+      if (pastedSource) { recipe.sourceText = pastedSource; recipe.importNotes = [...pasteNotes]; }
       if (!valid(recipe)) { notice('Enter a name, a positive yield, and at least one ingredient with a positive amount. Ingredient names must be unique.'); return; }
       let next = editing ? recipes.map(r => r.id === editing ? recipe : r) : [...recipes, recipe];
-      if (!editing && selected) {
-        const original = recipes.find(r => r.id === selected);
-        if ($('editor-title').textContent === 'Create variation' && original && !original.family.trim()) next = next.map(r => r.id === selected ? { ...r, family: recipe.family } : r);
+      if (!editing && variationSourceId) {
+        const original = recipes.find(r => r.id === variationSourceId);
+        if (original && !original.family.trim()) next = next.map(r => r.id === variationSourceId ? { ...r, family: recipe.family } : r);
       }
       if (!persist(next)) return;
-      selected = recipe.id; $('editor').hidden = true; $('target').value = recipe.yield; notice('Recipe saved.'); render();
+      selected = recipe.id; recipeExpanded = true; $('editor').hidden = true; $('paste-panel').hidden = true; $('target').value = recipe.yield; notice('Recipe saved.'); render();
     };
-    $('new').onclick = () => openEditor();
+    // Assisted text import: deliberately limited pattern matching, never AI.
+    function parseRecipeText(source) {
+      const result = { title: '', family: '', yield: '', unit: '', ingredients: [], instructions: '', notes: [] };
+      const lines = source.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      const ingredientHeading = /^(?:ingredients|what you(?:'|’)ll need)\s*:?\s*$/i;
+      const stepHeading = /^(?:instructions|directions|method|steps|preparation)\s*:?\s*$/i;
+      const hasHeadings = lines.some(line => ingredientHeading.test(line) || stepHeading.test(line));
+      const fractionMap = { '¼': '1/4', '½': '1/2', '¾': '3/4', '⅓': '1/3', '⅔': '2/3', '⅛': '1/8', '⅜': '3/8', '⅝': '5/8', '⅞': '7/8' };
+      const numeric = '(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:\\.\\d+)?|\\.\\d+)';
+      const quantityStart = new RegExp('^(' + numeric + ')\\s*(.*)$');
+      const yieldLine = new RegExp('^(serves|servings|makes|yield)\\s*:?\\s*(' + numeric + ')(?:\\s+(.+))?$', 'i');
+      const unitStart = /^(cups?|c\.?|tablespoons?|tbsp\.?|tbs\.?|teaspoons?|tsp\.?|grams?|g|kilograms?|kg|milligrams?|mg|millilit(?:er|re)s?|ml|lit(?:er|re)s?|l|fluid ounces?|fl\.?\s*oz\.?|ounces?|oz\.?|pounds?|lbs?\.?|cans?|tins?|sheets?|slices?|cloves?|packets?|packages?|bunch(?:es)?|pieces?|pinch(?:es)?)\s+(.+)$/i;
+      let section = '', instructionLines = [];
+      function ingredient(line) {
+        const raw = line.replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s+/, '');
+        const expanded = raw.replace(/(\d)?([¼½¾⅓⅔⅛⅜⅝⅞])/g, (_, whole, part) => (whole ? whole + ' ' : '') + fractionMap[part]);
+        const match = expanded.match(quantityStart);
+        if (!match || !match[2] || /^(?:[-–—/+]|to\b|or\b|\d|\()/i.test(match[2]) || /\s(?:or|to|plus|and)\s+\d|\+\s*\d/i.test(match[2])) {
+          result.notes.push('Amount needs review: ' + raw);
+          return { name: raw, quantity: '', unit: '' };
+        }
+        const number = amount(match[1].startsWith('.') ? '0' + match[1] : match[1]);
+        if (!Number.isFinite(number) || number <= 0) {
+          result.notes.push('Amount needs review: ' + raw);
+          return { name: raw, quantity: '', unit: '' };
+        }
+        const measured = match[2].match(unitStart);
+        const value = { name: measured ? measured[2] : match[2], quantity: number, unit: measured ? measured[1] : '' };
+        if (!measured) result.notes.push('Check the ingredient name and unit: ' + raw);
+        return value;
+      }
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        if (ingredientHeading.test(line)) { section = 'ingredients'; continue; }
+        if (stepHeading.test(line)) { section = 'instructions'; continue; }
+        const named = line.match(/^(?:title|recipe(?: name)?)\s*:\s*(.+)$/i);
+        if (named && !section) { result.title = named[1]; continue; }
+        const yieldMatch = line.match(yieldLine);
+        if (yieldMatch && !section) {
+          if (/^(?:[-–—/+]|to\b|or\b|plus\b|and\b|\d)/i.test(yieldMatch[3] || '')) {
+            result.notes.push('Yield needs review: ' + line); continue;
+          }
+          const number = amount(yieldMatch[2].startsWith('.') ? '0' + yieldMatch[2] : yieldMatch[2]);
+          result.yield = Number.isFinite(number) && number > 0 ? number : '';
+          result.unit = yieldMatch[3] || (/^serv/i.test(yieldMatch[1]) ? 'servings' : '');
+          continue;
+        }
+        if (!section && /^(?:serves|servings|makes|yield)\b/i.test(line)) { result.notes.push('Yield needs review: ' + line); continue; }
+        if (!section && index === 0 && hasHeadings && line.length <= 120 && !/^\d|^[-*•]/.test(line)) { result.title = line; continue; }
+        if (section === 'instructions') { instructionLines.push(line.replace(/^\d+[.)]\s*/, '')); continue; }
+        if (section === 'ingredients') {
+          if (/:$/.test(line) || /^\d+[.)]\s+(?:mix|stir|cook|add|heat|slice|serve|bake|fry|wrap|shape|boil)\b/i.test(line)) {
+            result.notes.push('Unmatched text — review manually: ' + line);
+          } else result.ingredients.push(ingredient(line));
+          continue;
+        }
+        // Without headings, numbered lines are steps; only measured lines are ingredients.
+        if (/^\d+[.)]\s+/.test(line)) { instructionLines.push(line.replace(/^\d+[.)]\s*/, '')); continue; }
+        const candidate = ingredient(line);
+        if (candidate.quantity !== '' && candidate.unit) result.ingredients.push(candidate);
+        else {
+          // Remove the tentative ingredient note; keep the full line as unmatched.
+          result.notes.pop();
+          result.notes.push('Unmatched text — review manually: ' + line);
+        }
+      }
+      result.instructions = instructionLines.join('\n');
+      if (!result.title) result.notes.push('Recipe name is missing. Enter it before saving.');
+      if (!result.yield || !result.unit) result.notes.push('Yield or yield label is missing. Enter the original amount this recipe makes before saving.');
+      if (!result.ingredients.length) result.notes.push('No ingredient rows recognized. Add an Ingredients heading or enter ingredients manually.');
+      if (!result.instructions) result.notes.push('No cooking instructions recognized. Check the original text and add them manually.');
+      const names = result.ingredients.map(i => normalize(i.name));
+      if (new Set(names).size !== names.length) result.notes.push('Repeated ingredient names need review. Combine them or use distinct names before saving.');
+      return result;
+    }
+    function showNotes(element, notes) {
+      element.replaceChildren();
+      for (const note of notes) { const li = document.createElement('li'); li.textContent = note; element.append(li); }
+    }
+    function showPasteReview() {
+      $('paste-review').hidden = !pastedSource;
+      $('original-text').textContent = pastedSource;
+      showNotes($('review-items'), pasteNotes.length ? pasteNotes : ['Recognized the basic structure. Check names, amounts, yield, and steps before saving.']);
+    }
+    const musubiExample = 'Spam musubi\nMakes: 8 pieces\n\nIngredients\n2 cups cooked rice\n1 can Spam\n2 sheets nori\n2 tbsp soy sauce\n1 tbsp sugar\n\nInstructions\n1. Slice the Spam into 8 pieces and pan-fry until browned.\n2. Stir the soy sauce and sugar together, add to the pan, and coat the Spam.\n3. Shape the rice into 8 portions, top with Spam, and wrap each with nori.';
+    const ambiguousExample = 'Quick rice bowl\n\nIngredients\n2 cups cooked rice\na little sauce\nsalt to taste\n\nInstructions\n1. Warm the rice and stir in the sauce.\n2. Add salt to taste.\n\nFinish with whatever toppings you like.';
+    function loadExample(text) {
+      if ($('paste-text').value.trim() && !confirm('Replace the text in the paste box with this example? Your current recipe form will stay unchanged.')) return;
+      $('paste-text').value = text; $('paste-notice').textContent = 'Example loaded. Click Fill recipe form to try it.'; $('paste-text').focus();
+    }
+    $('example').onclick = () => loadExample(musubiExample);
+    $('ambiguous-example').onclick = () => loadExample(ambiguousExample);
+    function showEasyHelp(visible) {
+      $('easy-quick-help').hidden = !visible;
+      $('easy-help-button').setAttribute('aria-expanded', String(visible));
+    }
+    $('easy-help-button').addEventListener('pointerenter', () => showEasyHelp(true));
+    $('easy-help-button').addEventListener('focus', () => showEasyHelp(true));
+    $('easy-help-button').onclick = () => showEasyHelp(true);
+    $('easy-help-area').addEventListener('pointerleave', () => {
+      if (document.activeElement !== $('easy-help-button')) showEasyHelp(false);
+    });
+    $('easy-help-button').addEventListener('blur', () => showEasyHelp(false));
+    function closeNewOptions() {
+      showEasyHelp(false);
+      $('new-options').hidden = true; $('new').setAttribute('aria-expanded', 'false');
+    }
+    $('new').onclick = () => {
+      const opening = $('new-options').hidden;
+      $('new-options').hidden = !opening; $('new').setAttribute('aria-expanded', String(opening));
+    };
+    document.addEventListener('click', event => { if (!$('new-recipe').contains(event.target)) closeNewOptions(); });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !$('new-options').hidden) {
+        if (!$('easy-quick-help').hidden) showEasyHelp(false);
+        else { closeNewOptions(); $('new').focus(); }
+      }
+    });
+    $('manual-entry').onclick = () => {
+      closeNewOptions(); $('paste-panel').hidden = true; openEditor(); $('editor-title').textContent = 'Manual entry';
+    };
+    $('open-paste').onclick = () => {
+      closeNewOptions(); recipeExpanded = false; $('paste-panel').hidden = false; render(); $('paste-text').focus();
+      $('paste-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    $('close-paste').onclick = () => { $('paste-panel').hidden = true; render(); };
+    $('parse-paste').onclick = () => {
+      const source = $('paste-text').value;
+      if (!source.trim()) { $('paste-notice').textContent = 'Paste some recipe text first, or try an example.'; return; }
+      if (source.length > 30000) { $('paste-notice').textContent = 'Use 30,000 characters or fewer.'; return; }
+      if (!$('editor').hidden && !confirm('Replace the open recipe form with a new imported recipe? Unsaved form changes will be lost. Saved recipes stay unchanged.')) return;
+      const parsed = parseRecipeText(source);
+      openEditor({ ...parsed, sourceText: source, importNotes: parsed.notes });
+      editing = null; $('editor-title').textContent = 'Easy fill in · Review recipe';
+      if (!parsed.ingredients.length) ingredientRow();
+      $('paste-panel').hidden = true;
+      notice('Form filled. Review it, supply missing amounts, then click Save recipe. Nothing has been saved yet.');
+      $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
     $('edit').onclick = () => openEditor(recipes.find(r => r.id === selected));
     $('variation').onclick = () => openEditor(recipes.find(r => r.id === selected), true);
-    $('cancel').onclick = () => { $('editor').hidden = true; render(); };
+    $('cancel').onclick = () => { $('editor').hidden = true; recipeExpanded = $('paste-panel').hidden && Boolean(selected); render(); };
     $('add-ingredient').onclick = () => ingredientRow();
     $('target').oninput = render; $('compare').onchange = compare; $('search').oninput = list;
     $('delete').onclick = () => {
       const recipe = recipes.find(r => r.id === selected);
       if (!recipe || !confirm(`Delete ${recipe.title}?`)) return;
       if (!persist(recipes.filter(r => r.id !== selected))) return;
-      selected = recipes[0]?.id || null; $('editor').hidden = true; $('target').value = recipes[0]?.yield || ''; notice('Recipe deleted.'); render();
+      selected = recipes[0]?.id || null; recipeExpanded = true; $('editor').hidden = true; $('target').value = recipes[0]?.yield || ''; notice('Recipe deleted.'); render();
     };
     $('export').onclick = () => {
       const url = URL.createObjectURL(new Blob([JSON.stringify(recipes, null, 2)], { type: 'application/json' }));
@@ -225,7 +469,7 @@
         if (!Array.isArray(imported) || !imported.every(valid)) throw new Error('Invalid backup');
         const added = imported.map(r => ({ ...r, id: crypto.randomUUID() }));
         if (!persist([...recipes, ...added])) return;
-        selected = added[0]?.id || selected; $('editor').hidden = true; $('target').value = recipes.find(r => r.id === selected)?.yield || ''; notice(`Imported ${added.length} recipes. Existing recipes were kept.`); render();
+        selected = added[0]?.id || selected; recipeExpanded = true; $('editor').hidden = true; $('paste-panel').hidden = true; $('target').value = recipes.find(r => r.id === selected)?.yield || ''; notice(`Imported ${added.length} recipes. Existing recipes were kept.`); render();
       } catch { notice('Could not import this file. Choose a Recipe Helper JSON backup.'); }
       finally { $('backup').value = ''; }
     };

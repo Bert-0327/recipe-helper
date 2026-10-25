@@ -1,0 +1,111 @@
+// Run with Node.js and Playwright installed. Uses an isolated browser and storage.
+const { chromium } = require('playwright');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const html = fs.readFileSync(path.join(__dirname, '../Recipe Helper.html'));
+const seed = [
+  { id: 'old-a', title: 'Existing rice', family: '', yield: 4, unit: 'bowls', instructions: 'Cook rice.', ingredients: [{name:'rice',quantity:2,unit:'cups'}] },
+  { id: 'old-b', title: 'Existing beans', family: '', yield: 2, unit: 'bowls', instructions: 'Cook beans.', ingredients: [{name:'beans',quantity:1,unit:'cup'}] }
+];
+(async () => {
+  const server = http.createServer((req, res) => { res.setHeader('Content-Type','text/html; charset=utf-8'); res.end(html); });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  let browser;
+  try {
+    browser = await chromium.launch({headless:true, channel:process.env.PLAYWRIGHT_CHANNEL || 'msedge'});
+    const context = await browser.newContext({acceptDownloads:true});
+    await context.addInitScript(data => { if (!localStorage.getItem('recipe-helper-v1')) localStorage.setItem('recipe-helper-v1', JSON.stringify(data)); }, seed);
+    const page = await context.newPage();
+    const errors = []; page.on('pageerror', e => errors.push(e.message));
+    const url = `http://127.0.0.1:${server.address().port}/`;
+    await page.goto(url);
+    const visible = async (id, value=true) => assert.equal(await page.locator(id).isVisible(),value,id);
+    const mobileFits = async () => assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),'mobile page fits');
+    const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem('recipe-helper-v1')));
+    const choose = async id => { await page.locator('#new').click(); await page.locator(id).click(); };
+    const recipe = id => page.locator(`[data-recipe-id="${id}"]`);
+    assert.deepEqual(await stored(),seed);
+    await visible('#detail');
+    await page.locator('#target').fill('3');
+    assert.match(await page.locator('#scaled').innerText(),/1.5 cups/);
+    await recipe('old-a').click(); await visible('#detail',false);
+    await recipe('old-a').press('Space'); await visible('#detail');
+    assert.equal(await page.locator('#target').inputValue(),'3');
+    await recipe('old-a').press('Enter'); await visible('#detail',false);
+    console.log('PASS: old recipes, scaling and mouse/keyboard toggles');
+
+    await page.locator('#new').click();
+    await page.locator('#easy-help-button').hover(); await visible('#easy-quick-help');
+    await page.locator('#easy-help-button').focus(); await visible('#easy-quick-help');
+    await page.locator('#easy-help-button').click(); await visible('#easy-quick-help');
+    await page.keyboard.press('Escape'); await visible('#easy-quick-help',false);
+    await page.keyboard.press('Escape'); await visible('#new-options',false);
+    await choose('#open-paste'); await visible('#detail',false);
+    const source = 'Weeknight rice\nServes: 2\nIngredients\n1 1/2 cups rice\n1 tbsp oil\nInstructions\n1. Cook rice.\n2. Stir in oil.';
+    await page.locator('#paste-text').fill(source);
+    await recipe('old-a').click(); await visible('#detail');
+    assert.equal(await page.locator('#paste-text').inputValue(),source);
+    assert.equal(await page.locator('#target').inputValue(),'3');
+    assert(await page.evaluate(() => document.querySelector('#detail').getBoundingClientRect().top < document.querySelector('#paste-panel').getBoundingClientRect().top));
+    assert(Math.abs(await page.locator('#detail').evaluate(el => el.getBoundingClientRect().top)) < 5);
+    await recipe('old-a').click();
+    await page.locator('#parse-paste').click(); await visible('#editor');
+    assert.equal((await stored()).length,2,'filling must not save');
+    await page.locator('#title').fill('Weeknight rice edited');
+    await page.setViewportSize({width:390,height:844}); await mobileFits();
+    await page.setViewportSize({width:1280,height:900});
+    await recipe('old-b').click();
+    assert.equal(await page.locator('#title').inputValue(),'Weeknight rice edited');
+    assert.equal(await page.locator('#original-text').textContent(),source);
+    await page.locator('button[type="submit"]').click();
+    let data=await stored(); assert.equal(data.length,3); assert.equal(data[2].sourceText,source);
+    await page.reload(); await recipe(data[2].id).click();
+    await page.locator('#saved-source summary').click();
+    await page.setViewportSize({width:390,height:844}); await mobileFits();
+    await page.setViewportSize({width:1280,height:900});
+    assert.equal(await page.locator('#saved-original').textContent(),source);
+    await page.locator('#edit').click();
+    await page.locator('#instructions').fill('Cook carefully.');
+    await page.locator('button[type="submit"]').click();
+    assert.equal((await stored())[2].sourceText,source);
+    console.log('PASS: help, detail position/scroll, draft preservation, fill/save/reload/edit/source retention');
+
+    await choose('#open-paste'); await page.locator('#ambiguous-example').click();
+    await page.locator('#parse-paste').click();
+    assert.equal(await page.locator('#yield').inputValue(),'');
+    assert.equal(await page.locator('[data-field="quantity"]').nth(1).inputValue(),'');
+    await page.locator('button[type="submit"]').click(); assert.equal((await stored()).length,3);
+    await page.locator('#cancel').click();
+    await choose('#manual-entry'); assert.equal(await page.locator('#title').inputValue(),'');
+    await page.locator('#cancel').click();
+    await recipe('old-a').click();
+    if (!await page.locator('#detail').isVisible()) await recipe('old-a').click();
+    await page.locator('#variation').click();
+    await page.locator('#family').fill('Rice family');
+    await recipe('old-b').click();
+    await page.locator('button[type="submit"]').click();
+    data=await stored();
+    assert.equal(data.find(r=>r.id==='old-a').family,'Rice family');
+    assert.equal(data.find(r=>r.id==='old-b').family,'');
+    assert.match(await page.locator('#changes').innerText(),/Ingredient amounts match/);
+    console.log('PASS: missing-field validation, manual entry, variation ownership while browsing and comparison');
+
+    const downloadEvent = page.waitForEvent('download'); await page.locator('#export').click();
+    const download=await downloadEvent;
+    const backup=fs.readFileSync(await download.path());
+    const exported=JSON.parse(backup); assert.deepEqual(exported,await stored());
+    await page.locator('#backup').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:backup});
+    data=await stored(); assert.equal(data.length,exported.length*2);
+    assert.equal(data.filter(r=>r.sourceText===source).length,2);
+    assert.equal(new Set(data.map(r=>r.id)).size,data.length);
+    await page.locator('#backup').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{}')});
+    assert.equal((await stored()).length,data.length);
+    await page.setViewportSize({width:390,height:844}); await choose('#open-paste');
+    await mobileFits();
+    if (process.env.RECIPE_HELPER_SCREENSHOT) await page.screenshot({path:process.env.RECIPE_HELPER_SCREENSHOT,fullPage:true});
+    assert.deepEqual(errors,[]);
+    console.log('PASS: backup roundtrip/metadata, invalid backup preservation, mobile layout, no browser errors');
+  } finally { if(browser) await browser.close(); await new Promise(resolve=>server.close(resolve)); }
+})().catch(e=>{ console.error(e); process.exitCode=1; });
