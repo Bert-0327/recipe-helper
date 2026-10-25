@@ -1,60 +1,116 @@
 # Recipe Helper
 
-Recipe Helper helps you save recipes, change how much you want to make, and compare different versions of a recipe.
+Save your recipes, change how much you want to make, and compare different versions of a recipe.
 
 ## Choose a page
 
-### [Open the full Recipe Helper tool](https://bert-0327.github.io/recipe-helper/Recipe%20Helper.html)
+- **[Open the full Recipe Helper tool](https://bert-0327.github.io/recipe-helper/Recipe%20Helper.html)** to create, save, and use your own recipes.
+- **[Open the introduction and interactive preview](https://bert-0327.github.io/recipe-helper/)** for cooking tips, a guide, and sample recipes you can try. The preview does not save your own recipes.
 
-Use this page to create and save your own recipes. You can change ingredient amounts and compare recipes in the same family.
+## Add a recipe
 
-**How to use the tool:**
+Click **+ New recipe**, then choose one of these options.
 
-1. Click **+ New recipe**, then **Manual entry** for a blank form, or **Easy fill in** to paste recipe text.
-2. Enter the recipe name, how much it makes, the ingredients, and the instructions.
-3. Add a **Recipe family** if you want to group similar recipes, such as Pasta or Cookies.
-4. Click **Save recipe**.
-5. Select a saved recipe and change **How much do you want to make?** The tool changes each ingredient amount for you.
-6. To make a different version, click **Create variation**, change what you need, and save it. Keep the same recipe family to compare the two versions under **Compare a variation**.
+### Manual entry: type a recipe yourself
 
-You can enter ingredient amounts as numbers or fractions, such as `0.5`, `1/2`, or `1 1/2`. Cooking time and oven temperature do not change automatically.
+1. Choose **Manual entry** to open a blank recipe form.
+2. Enter the recipe name and **Original yield**: how much the recipe normally makes. For example, enter `4` and use `servings` as the yield label.
+3. Add each ingredient's name, amount, and unit, such as `rice`, `2`, and `cups`. Use **+ Add ingredient** for more rows.
+4. Add the cooking instructions. You can also enter a **Recipe family**, such as Pasta or Cookies, to group similar recipes.
+5. Click **Save recipe**.
 
-**Easy fill in:**
+Ingredient amounts can be numbers or fractions, such as `0.5`, `1/2`, or `1 1/2`.
 
-1. Paste organized English recipe text, with the title and yield first, then **Ingredients** and **Instructions** headings. Put one ingredient on each line, such as `2 cups cooked rice`.
-2. Click **Fill recipe form**. Check and edit the recipe name, yield, ingredients, units, and steps.
-3. Fill any missing amounts or yield, then click **Save recipe**. Filling the form does not save anything.
+### Easy fill in: start with recipe text
 
-Use the **?** beside Easy fill in for quick help, or open **Formatting guide and example** in the paste panel. Help works with a mouse, keyboard, or tap. Decimals, fractions, and common units are supported. Ranges, amounts such as “to taste,” unfamiliar units, messy captions, and non-English headings need manual review. This helper uses simple pattern matching in your browser; it does not use AI, open links, or watch videos. Text is limited to 30,000 characters.
+1. Choose **Easy fill in**.
+2. Paste the recipe text into **Recipe text**. Use the format below for the best results.
+3. Click **Fill recipe form**. The helper fills in the parts it recognizes.
+4. Check and correct the recipe name, original yield and label, ingredient names, amounts, units, and cooking steps. Add a recipe family if you want one.
+5. Read the review notes and compare the form with **Original pasted text**. Fill in any missing amounts or yield. Check any text the helper could not place.
+6. Click **Save recipe** when the form is ready.
 
-The full original text and import notes stay available with saved imports and in exported backups. Notes describe the first import and remain as a reference after you correct the form.
+**Filling the form does not save the recipe. You must click Save recipe.**
 
-Click a saved recipe in the sidebar to show its details; click again to hide them. You can also use Enter or Space. Opening Easy fill in initially hides saved details. Reopening a recipe displays it above the form and brings it into view. Showing or hiding recipes keeps your pasted text and unsaved form fields; reopening the same recipe also keeps its scaling amount.
+For quick help, point to the **?** beside Easy fill in, move keyboard focus to it, or click or tap it. Open **Formatting guide and example** in the paste panel for more help.
 
-### [Open the introduction and interactive preview](https://bert-0327.github.io/recipe-helper/)
+### A format you can copy
 
-Use this page to learn about Recipe Helper before using the full tool. It includes basic cooking tips, a guide, and sample recipes you can click.
+Put the recipe name and yield first, then list the ingredients and cooking steps in separate sections:
 
-**How to use the preview:**
+```text
+Simple rice bowl
+Serves: 2
 
-1. Read the cooking tips and the guide.
-2. Scroll down to the tool preview.
-3. Click a sample recipe, such as **Tomato Pasta** or **Garlic Cream Pasta**.
-4. Change the desired servings to see the ingredient amounts change.
-5. Choose a Pasta recipe to see how two recipes in the same family compare.
+Ingredients
+2 cups cooked rice
+1 tbsp soy sauce
 
-The preview uses sample recipes. It does not let you save your own recipes. Open the full tool when you are ready to make your own recipe book.
+Instructions
+1. Heat the cooked rice until hot.
+2. Stir in the soy sauce and serve.
+```
 
-## Keep a backup of your recipes
+### Tips for Easy fill in
 
-The full tool saves recipes in the browser you use on that device. They do not automatically appear on another browser or device.
+- Use English headings. **Ingredients** or **What you'll need** works for ingredients. **Instructions**, **Directions**, **Method**, **Steps**, or **Preparation** works for cooking steps.
+- Put the title on the first line. Before the sections, add a yield such as `Serves: 2`, `Makes: 8 pieces`, or `Yield: 8 pieces`.
+- Put one ingredient on each line: **amount, unit, then ingredient name**. For example, `2 cups cooked rice`. Common units include cups, tbsp, tsp, g, ml, cans, and sheets.
+- Decimals and fractions work, including `0.5`, `1/2`, `1 1/2`, and `½`.
+- Check ranges such as `1–2 cups`, unclear amounts such as `a little` or `to taste`, unfamiliar units, and package sizes yourself. Missing or unclear amounts are left blank or marked for review, rather than guessed.
+- Clear measured ingredients and numbered steps can sometimes work without headings, but organized sections work best. Always review the filled form.
+- Paste recipe text, rather than a website address or video link. You can paste up to **30,000 characters**.
+
+Easy fill in looks for patterns in the text in your browser. It does not use AI, open links, watch videos, or translate recipes. You do not need an API key or a separate server.
+
+For saved imports, open **Original text and import notes** to see the source again. These notes describe the first fill-in attempt; they remain for reference after you correct the recipe. The source text and notes are also included in exported backups.
+
+## Open or hide a saved recipe
+
+- Click a recipe in the sidebar to show its details. Click it again to hide them. With the button focused, you can also press **Enter** or **Space**.
+- Opening **Easy fill in** hides saved recipe details at first, giving you room to paste text.
+- To check a saved recipe while working, click it in the sidebar. Its details appear above the paste or recipe form, and the page moves to them.
+- Showing or hiding saved details keeps your pasted text and unsaved form fields. Hiding and reopening the same recipe also keeps its chosen amount for scaling. Choosing a different recipe starts with that recipe's original yield.
+
+Unsaved work is still a draft. Click **Save recipe** before leaving or refreshing the page if you want to keep the recipe.
+
+## Change how much you want to make
+
+1. Open a saved recipe.
+2. Change **How much do you want to make?**
+3. Use the **You need** column for the new ingredient amounts.
+
+The tool changes each ingredient amount by the same proportion. It does not change cooking time or oven temperature, and it does not convert between units.
+
+## Make and compare a variation
+
+1. Open a saved recipe and click **Create variation**.
+2. Give the new version a name, change the ingredients or steps, and keep the same **Recipe family**.
+3. Click **Save recipe**.
+4. Open a recipe in that family and use **Compare a variation** to choose a related recipe.
+
+Both recipes are compared at the amount you selected. Check that their yield labels describe comparable portions, especially if one uses servings and another uses pieces.
+
+## Try the introduction and preview
+
+On the [introduction and preview page](https://bert-0327.github.io/recipe-helper/):
+
+1. Read the cooking tips and guide.
+2. Scroll to the tool preview and click a sample recipe.
+3. Change the desired servings to see ingredient amounts change.
+4. Choose **Tomato Pasta** or **Garlic Cream Pasta** to compare two recipes in the Pasta family.
+
+The samples are for trying the preview. Use the full tool to build your own recipe book.
+
+## Save and back up your recipes
+
+Your saved recipes stay in the browser you use on that device. They do not automatically appear in another browser or on another device.
 
 - Click **Export backup** to download a copy of your recipes.
-- Click **Import backup** in the full tool to add recipes from a backup file. Your existing recipes are kept.
+- Click **Import backup** in the full tool to add recipes from that file. Existing recipes are kept.
+- Export regularly, especially before clearing browser data or changing devices.
 
-Export a backup regularly, especially before clearing browser data or moving to another device.
-
-An update at the same website address keeps existing saved recipes. To move recipes from the local file or demo address to the website, export there and import here. Older versions can read the recipe fields in new backups, but editing an imported recipe in an older version can discard its original text and import notes.
+Website updates at the same address keep the existing recipe storage. To move recipes from a local file or demo to the website, export them there and import the backup into the full tool. Older versions can read the basic recipe fields, but editing imported recipes in an older version may remove their original text and import notes.
 
 ## Development checks
 
